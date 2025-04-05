@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Bản đồ tuyến đường</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -15,28 +16,26 @@
     <div id="map"></div>
 
     <script>
-        // Khởi tạo bản đồ
-        var map = L.map('map').setView([21.0285, 105.8542], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
-
         // Hàm lấy tham số từ URL
         function getQueryParam(param) {
             let urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(param);
         }
 
-        // Lấy địa điểm từ URL (truyền từ Axure)
+        // Lấy tham số từ URL
+        let userLat = getQueryParam("userLat");
+        let userLong = getQueryParam("userLong");
         let destination = getQueryParam("destination");
 
-        // Lấy vị trí hiện tại của người dùng
-        navigator.geolocation.getCurrentPosition(function(position) {
-            let userLat = position.coords.latitude;
-            let userLng = position.coords.longitude;
+        // Khởi tạo bản đồ với tọa độ mặc định nếu không có userLat/userLong
+        var map = L.map('map').setView([userLat || 21.0285, userLong || 105.8542], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
 
-            // Đánh dấu vị trí của người dùng
-            L.marker([userLat, userLng]).addTo(map).bindPopup("Vị trí của bạn").openPopup();
+        // Nếu có userLat và userLong, đánh dấu vị trí người dùng
+        if (userLat && userLong) {
+            L.marker([userLat, userLong]).addTo(map).bindPopup("Vị trí của bạn").openPopup();
 
             if (destination) {
                 // Tìm tọa độ của điểm đến
@@ -50,15 +49,22 @@
                         // Hiển thị tuyến đường từ vị trí hiện tại đến điểm đến
                         L.Routing.control({
                             waypoints: [
-                                L.latLng(userLat, userLng),
+                                L.latLng(userLat, userLong),
                                 L.latLng(destLat, destLng)
                             ],
                             routeWhileDragging: true
                         }).addTo(map);
+                    } else {
+                        console.error("Không tìm thấy điểm đến: ", destination);
                     }
+                })
+                .catch(error => {
+                    console.error("Lỗi khi gọi Nominatim API: ", error);
                 });
             }
-        });
+        } else {
+            console.log("Không có tọa độ người dùng, sử dụng tọa độ mặc định.");
+        }
     </script>
 </body>
 </html>
