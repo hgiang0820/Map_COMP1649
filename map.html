@@ -1,79 +1,64 @@
 <!DOCTYPE html>
- <html>
- <html lang="vi">
- <head>
-     <title>Bản đồ theo dõi quãng đường</title>
-     <meta charset="UTF-8">
-     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <title>Bản đồ tuyến đường</title>
-     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-     <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
- @@ -10,40 +12,50 @@
-     </style>
- </head>
- <body>
-     <input type="text" id="destination" placeholder="Nhập địa chỉ điểm đến..." />
-     <button onclick="calculateRoute()">Tìm đường</button>
-     <div id="map"></div>
- 
-     <script>
-         // Khởi tạo bản đồ
-         var map = L.map('map').setView([21.0285, 105.8542], 13);
-         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-             attribution: '&copy; OpenStreetMap contributors'
-         }).addTo(map);
- 
-         // Hàm lấy tham số từ URL
-         function getQueryParam(param) {
-             let urlParams = new URLSearchParams(window.location.search);
-             return urlParams.get(param);
-         }
- 
-         // Lấy địa điểm từ URL (truyền từ Axure)
-         let destination = getQueryParam("destination");
- 
-         // Lấy vị trí hiện tại của người dùng
-         navigator.geolocation.getCurrentPosition(function(position) {
-             var userLat = position.coords.latitude;
-             var userLng = position.coords.longitude;
-             let userLat = position.coords.latitude;
-             let userLng = position.coords.longitude;
- 
-             // Đánh dấu vị trí của người dùng
-             L.marker([userLat, userLng]).addTo(map).bindPopup("Vị trí của bạn").openPopup();
- 
-             function calculateRoute() {
-                 var destination = document.getElementById("destination").value;
- 
-                 // Chuyển đổi địa chỉ sang tọa độ
-             if (destination) {
-                 // Tìm tọa độ của điểm đến
-                 fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${destination}`)
-                 .then(response => response.json())
-                 .then(data => {
-                     var destLat = data[0].lat;
-                     var destLng = data[0].lon;
-                     if (data.length > 0) {
-                         let destLat = data[0].lat;
-                         let destLng = data[0].lon;
- 
-                     L.Routing.control({
-                         waypoints: [
-                             L.latLng(userLat, userLng),
-                             L.latLng(destLat, destLng)
-                         ],
-                         routeWhileDragging: true
-                     }).addTo(map);
-                         // Hiển thị tuyến đường từ vị trí hiện tại đến điểm đến
-                         L.Routing.control({
-                             waypoints: [
-                                 L.latLng(userLat, userLng),
-                                 L.latLng(destLat, destLng)
-                             ],
-                             routeWhileDragging: true
-                         }).addTo(map);
-                     }
-                 });
-             }
-         });
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bản đồ tuyến đường</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+    <style>
+        #map { height: 500px; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script>
+        // Khởi tạo bản đồ
+        var map = L.map('map').setView([21.0285, 105.8542], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Hàm lấy tham số từ URL
+        function getQueryParam(param) {
+            let urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        // Lấy địa điểm từ URL (truyền từ Axure)
+        let destination = getQueryParam("destination");
+
+        // Lấy vị trí hiện tại của người dùng
+        navigator.geolocation.getCurrentPosition(function(position) {
+            let userLat = position.coords.latitude;
+            let userLng = position.coords.longitude;
+
+            // Đánh dấu vị trí của người dùng
+            L.marker([userLat, userLng]).addTo(map).bindPopup("Vị trí của bạn").openPopup();
+
+            if (destination) {
+                // Tìm tọa độ của điểm đến
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${destination}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        let destLat = data[0].lat;
+                        let destLng = data[0].lon;
+
+                        // Hiển thị tuyến đường từ vị trí hiện tại đến điểm đến
+                        L.Routing.control({
+                            waypoints: [
+                                L.latLng(userLat, userLng),
+                                L.latLng(destLat, destLng)
+                            ],
+                            routeWhileDragging: true
+                        }).addTo(map);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
